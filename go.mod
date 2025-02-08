@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.4.0
 	github.com/spf13/viper v1.19.0
+	google.golang.org/protobuf v1.36.5
 )
 
 require (

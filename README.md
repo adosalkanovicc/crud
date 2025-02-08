@@ -1,14 +1,25 @@
-After cloning github repository, first thing you should do is creating a database called 'userdb'. After this, create a table 'users'.
+# User Management Go App
 
-CREATE DATABASE userdb;
-USE userdb;
+This is a basic Go application for user management with CRUD operations (Create, Read, Update, Delete). It follows a four-layer architecture with the following layers:
 
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE,
-    age INT
-);
+- **Handler**: Handles incoming HTTP requests.
+- **Controller**: Coordinates requests between the handler and the service.
+- **Service**: Contains the business logic.
+- **Repo**: Handles interactions with the MySQL database.
 
-After you have created databases and table, run the code by typing: go run main.go database.go
+The app uses Protobuf messages for defining the user structure and MySQL as the database, running in a Docker Compose environment.
+
+## Features
+- Create a new user
+- Get user details
+- Update user information
+- Delete a user
+
+## Setup
+
+   ```bash
+   git clone https://github.com/adosalkanovicc/crud.git
+   cd crud
+   go run main.go
+   ```
 

@@ -13,14 +13,13 @@ import (
 
 var DB *sql.DB
 
-func InitDB() {
-	// Load environment variables from .env file
+func InitDB() *sql.DB {
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Read the environment variables using viper
 	viper.SetConfigFile(".env")
 	err = viper.ReadInConfig()
 	if err != nil {
@@ -46,6 +45,7 @@ func InitDB() {
 	fmt.Println("Connected to the database successfully!")
 
 	runMigration()
+	return DB
 }
 
 func runMigration() {
