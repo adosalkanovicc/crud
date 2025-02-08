@@ -1,20 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/adosalkanovicc/go_crud/config"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
-var db *sql.DB
-
 func main() {
-	InitDB()
+	config.InitDB()
 	router := mux.NewRouter()
 
 	router.HandleFunc("/users", getUsers).Methods("GET")
@@ -27,7 +26,23 @@ func main() {
 }
 
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, name, email, age FROM users")
+	page := 1
+	limit := 10
+
+	if p := r.URL.Query().Get("page"); p != "" {
+		if pInt, err := strconv.Atoi(p); err == nil && pInt > 0 {
+			page = pInt
+		}
+	}
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if lInt, err := strconv.Atoi(l); err == nil && lInt > 0 {
+			limit = lInt
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	rows, err := config.DB.Query("SELECT id, name, email, age FROM users LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -38,7 +53,10 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var id, age int
 		var name, email string
-		rows.Scan(&id, &name, &email, &age)
+		if err := rows.Scan(&id, &name, &email, &age); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		user := map[string]interface{}{
 			"id":    id,
@@ -66,7 +84,8 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO users (name, email, age) VALUES (?, ?, ?)", user.Name, user.Email, user.Age)
+	// Replace db with config.DB
+	_, err = config.DB.Exec("INSERT INTO users (name, email, age) VALUES (?, ?, ?)", user.Name, user.Email, user.Age)
 	if err != nil {
 		http.Error(w, "Error inserting user", http.StatusInternalServerError)
 		return
@@ -92,7 +111,8 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = db.Exec("UPDATE users SET name=?, email=?, age=? WHERE id=?", user.Name, user.Email, user.Age, id)
+	// Replace db with config.DB
+	_, err = config.DB.Exec("UPDATE users SET name=?, email=?, age=? WHERE id=?", user.Name, user.Email, user.Age, id)
 	if err != nil {
 		http.Error(w, "Error updating user", http.StatusInternalServerError)
 		return
@@ -105,7 +125,8 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	_, err := db.Exec("DELETE FROM users WHERE id=?", id)
+	// Replace db with config.DB
+	_, err := config.DB.Exec("DELETE FROM users WHERE id=?", id)
 	if err != nil {
 		http.Error(w, "Error deleting user", http.StatusInternalServerError)
 		return
